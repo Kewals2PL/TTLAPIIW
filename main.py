@@ -32,11 +32,11 @@ class ScalableImage(tk.Label):
         if width < 1 or height < 1:
             width, height = 400, 400  # default size if window too small
         for frame in self.frames:
-            resized = frame.resize((width, height), Image.ANTIALIAS)
+            resized = frame.resize((width, height), Image.Resampling.LANCZOS)
             self.tk_frames.append(ImageTk.PhotoImage(resized))
 
     def animate_gif(self):
-        if not self.animate:
+        if not self.animate or not self.tk_frames:
             return
         self.config(image=self.tk_frames[self.index])
         self.index = (self.index + 1) % len(self.tk_frames)
@@ -46,7 +46,7 @@ class ScalableImage(tk.Label):
         width, height = self.master.winfo_width(), self.master.winfo_height()
         if width < 1 or height < 1:
             width, height = 400, 400
-        resized_image = image.resize((width, height), Image.ANTIALIAS)
+        resized_image = image.resize((width, height), Image.Resampling.LANCZOS)
         self.tk_image = ImageTk.PhotoImage(resized_image)
         self.config(image=self.tk_image)
 
@@ -62,7 +62,7 @@ def download_image(url):
         response.raise_for_status()
         return BytesIO(response.content)
     except Exception as e:
-        print(f"Błąd pobierania obrazu: {e}")
+        print(f"Błąd pobierania obrazu: {e} - spróbuj link z końcówką .png/.gif")
         return None
 
 def main():
@@ -72,12 +72,21 @@ def main():
         return
 
     root = tk.Tk()
+    icon = tk.PhotoImage(file="icon.png")
+    root.iconphoto(False, icon)
     root.geometry("600x600")
-    root.title("Obraz z internetu (skalowany)")
+    root.title("Media Site (scalable)")
 
     viewer = ScalableImage(root, image_data)
     viewer.pack(fill="both", expand=True)
 
+    def delayed_start():
+        if viewer.is_animated:
+            viewer.update_scaled_frames()
+        else:
+            viewer.update_static_image()
+
+    root.after(100, delayed_start)
     root.mainloop()
 
 if __name__ == "__main__":
