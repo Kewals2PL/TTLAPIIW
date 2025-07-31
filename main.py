@@ -2,6 +2,11 @@ import requests
 from PIL import Image, ImageTk, ImageSequence
 import tkinter as tk
 from io import BytesIO
+import tempfile
+import shutil
+import os
+import pathlib
+
 
 class ScalableImage(tk.Label):
     def __init__(self, master, image_data):
@@ -60,25 +65,57 @@ def download_image(url):
     try:
         response = requests.get(url)
         response.raise_for_status()
-        return BytesIO(response.content)
+
+        # Zapisz tymczasowy plik
+        temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=".img")
+        temp_file.write(response.content)
+        temp_file.close()
+
+        return temp_file.name, BytesIO(response.content)  # ścieżka + dane obrazu
+
     except Exception as e:
-        print(f"Błąd pobierania obrazu: {e} - spróbuj link z końcówką .png/.gif")
-        return None
+        print(f"Błąd pobierania obrazu: {e} -- Spróbuj link z końcówką .png/.gif")
+        return None, None
 
 def main():
     url = input("Podaj link do obrazka lub GIF-a: ").strip()
-    image_data = download_image(url)
+    temp_path, image_data = download_image(url)
     if not image_data:
         return
 
     root = tk.Tk()
-    icon = tk.PhotoImage(file="icon.png")
-    root.iconphoto(False, icon)
     root.geometry("600x600")
-    root.title("Media Site (scalable)")
+    root.title("Site Media (scalable)")
 
+    try:
+        icon = tk.PhotoImage(file="icon.png")
+        root.iconphoto(False, icon)
+    except Exception:
+        pass  # brak ikony to nie problem krytyczny
+
+    # Konfiguracja siatki
+    root.grid_rowconfigure(0, weight=1)
+    root.grid_columnconfigure(0, weight=1)
+
+    # Obraz (wiersz 0)
     viewer = ScalableImage(root, image_data)
-    viewer.pack(fill="both", expand=True)
+    viewer.grid(row=0, column=0, sticky="nsew")
+
+    # Przycisk (wiersz 1)
+    def save_to_downloads():
+        filename = url.split("/")[-1].split("?")[0] or "obraz"
+        if "." not in filename:
+            filename += ".png"
+
+        downloads_path = pathlib.Path.home() / "Downloads"
+        downloads_path.mkdir(exist_ok=True)
+
+        dest = downloads_path / filename
+        shutil.copy(temp_path, dest)
+        print(f"Zapisano do: {dest}")
+
+    save_button = tk.Button(root, text="Zapisz do Pobranych", command=save_to_downloads)
+    save_button.grid(row=1, column=0, sticky="ew", padx=10, pady=10)
 
     def delayed_start():
         if viewer.is_animated:
