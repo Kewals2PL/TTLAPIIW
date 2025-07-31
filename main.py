@@ -35,9 +35,14 @@ class ScalableImage(tk.Label):
         self.tk_frames.clear()
         width, height = self.master.winfo_width(), self.master.winfo_height()
         if width < 1 or height < 1:
-            width, height = 400, 400  # default size if window too small
+            width, height = 400, 400
+
         for frame in self.frames:
-            resized = frame.resize((width, height), Image.Resampling.LANCZOS)
+            img_w, img_h = frame.size
+            ratio = min(width / img_w, height / img_h)
+            new_size = (int(img_w * ratio), int(img_h * ratio))
+
+            resized = frame.resize(new_size, Image.Resampling.LANCZOS)
             self.tk_frames.append(ImageTk.PhotoImage(resized))
 
     def animate_gif(self):
@@ -51,9 +56,15 @@ class ScalableImage(tk.Label):
         width, height = self.master.winfo_width(), self.master.winfo_height()
         if width < 1 or height < 1:
             width, height = 400, 400
-        resized_image = image.resize((width, height), Image.Resampling.LANCZOS)
+
+        img_w, img_h = image.size
+        ratio = min(width / img_w, height / img_h)
+        new_size = (int(img_w * ratio), int(img_h * ratio))
+
+        resized_image = image.resize(new_size, Image.Resampling.LANCZOS)
         self.tk_image = ImageTk.PhotoImage(resized_image)
         self.config(image=self.tk_image)
+
 
     def on_resize(self, event):
         if self.is_animated:
@@ -114,7 +125,7 @@ def main():
         shutil.copy(temp_path, dest)
         print(f"Zapisano do: {dest}")
 
-    save_button = tk.Button(root, text="Zapisz do Pobranych", command=save_to_downloads)
+    save_button = tk.Button(root, text="Pobierz", command=save_to_downloads)
     save_button.grid(row=1, column=0, sticky="ew", padx=10, pady=10)
 
     def delayed_start():
