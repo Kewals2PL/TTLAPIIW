@@ -85,7 +85,7 @@ def download_image(url):
         return temp_file.name, BytesIO(response.content)  # ścieżka + dane obrazu
 
     except Exception as e:
-        print(f"Błąd pobierania obrazu: {e} -- Spróbuj link z końcówką .png/.gif")
+        print(f"Błąd pobierania obrazu: {e} -- Spróbuj link z końcówką .png/.jpg/.gif")
         return None, None
 
 def main():
