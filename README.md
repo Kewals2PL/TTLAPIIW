@@ -1,4 +1,7 @@
-It means:
+# Requirements
+pip install pillow requests beautifulsoup4
+
+### It means:
 
 Take The Link And Put It In a Window (and maybe download it?)
 
