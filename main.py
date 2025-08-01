@@ -5,6 +5,7 @@ from tkinter import simpledialog, messagebox, ttk
 from io import BytesIO
 import os
 
+
 class ScalableImage(tk.Label):
     def __init__(self, master, image_data, update_title_callback):
         super().__init__(master)
