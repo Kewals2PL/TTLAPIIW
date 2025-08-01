@@ -4,6 +4,7 @@ import tkinter as tk
 from tkinter import simpledialog, messagebox, ttk
 from io import BytesIO
 import os
+import time
 
 
 class ScalableImage(tk.Label):
@@ -105,7 +106,7 @@ class ScalableImage(tk.Label):
 
         format = self.original_image.format or "PNG"
         extension = format.lower()
-        filename = f"pobrany_obraz.{extension}"
+        filename = f"{time.strftime('%Y-%m-%d_%H-%M-%S')}.{extension}"
         path = os.path.join(downloads, filename)
 
         with open(path, "wb") as f:
