@@ -23,7 +23,7 @@ class ScalableImage(tk.Label):
             self.update_scaled_frames()
             self.animate_gif()
         else:
-            self.update_static_image()
+            self.after(100, lambda: self.update_static_image())  # poczekaj aż kontener będzie miał rozmiar
 
         self.bind("<Configure>", self.on_resize)
 
@@ -41,6 +41,10 @@ class ScalableImage(tk.Label):
             return
 
         width, height = self.winfo_width(), self.winfo_height()
+        if width <= 0 or height <= 0:
+            self.after(100, self.update_scaled_frames)
+            return
+
         for frame in self.frames:
             resized = self.resize_with_aspect_ratio(frame, width, height)
             self.tk_frames.append(ImageTk.PhotoImage(resized))
@@ -54,18 +58,31 @@ class ScalableImage(tk.Label):
 
     def resize_and_display(self, image):
         width, height = self.winfo_width(), self.winfo_height()
+        if width <= 0 or height <= 0:
+            self.after(100, lambda: self.resize_and_display(image))
+            return
         resized_image = image.resize((width, height), Image.LANCZOS)
         self.tk_image = ImageTk.PhotoImage(resized_image)
         self.config(image=self.tk_image)
 
-    def resize_with_aspect_ratio(self, image, max_w, max_h):
+    def resize_with_aspect_ratio(self, image, max_width, max_height):
+        if max_width <= 0 or max_height <= 0:
+            return image
         orig_w, orig_h = image.size
-        ratio = min(max_w / orig_w, max_h / orig_h)
+        ratio = min(max_width / orig_w, max_height / orig_h)
         new_size = (int(orig_w * ratio), int(orig_h * ratio))
         return image.resize(new_size, Image.LANCZOS)
 
     def display_keep_aspect_ratio(self, image):
-        resized = self.resize_with_aspect_ratio(image, self.winfo_width(), self.winfo_height())
+        self.after(100, lambda: self._display_keep_aspect_ratio(image))
+
+    def _display_keep_aspect_ratio(self, image):
+        max_width = self.winfo_width()
+        max_height = self.winfo_height()
+        if max_width <= 0 or max_height <= 0:
+            self.after(100, lambda: self._display_keep_aspect_ratio(image))
+            return
+        resized = self.resize_with_aspect_ratio(image, max_width, max_height)
         self.tk_image = ImageTk.PhotoImage(resized)
         self.config(image=self.tk_image)
 
@@ -166,4 +183,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-#fajnaliczba
